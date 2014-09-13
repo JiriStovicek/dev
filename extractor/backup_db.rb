@@ -12,7 +12,7 @@ mysql_dir = config['mysql_dir']
 
 
 # dump into the file
-system "#{mysql_dir}mysqldump --user=#{db_user} --password=#{db_password} --host=#{db_host} #{db_name} > sql/db_backup.sql"
+system "#{mysql_dir}mysqldump --user=#{db_user} --password=#{db_password} --host=#{db_host} #{db_name} > sql/dump.sql"
 
 # restore from the dump file
-###system "#{mysql_dir}mysql --user=#{db_user} --password=#{db_password} --host=#{db_host} #{db_name} < sql/db_backup.sql"
+###system "#{mysql_dir}mysql --user=#{db_user} --password=#{db_password} --host=#{db_host} #{db_name} < sql/dump.sql"
