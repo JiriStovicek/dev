@@ -32,6 +32,7 @@
     self = [super initWithStyle:style];
     if (self) {
         // Custom initialization
+        
     }
     return self;
 }
@@ -42,6 +43,11 @@
     
     self.toDoItems = [[NSMutableArray alloc] init];
     
+    UITapGestureRecognizer* doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTap:)];
+    doubleTap.numberOfTapsRequired = 2;
+    doubleTap.numberOfTouchesRequired = 1;
+    [self.tableView addGestureRecognizer:doubleTap];
+    
     [self loadInitialData];
     
     // Uncomment the following line to preserve selection between presentations.
@@ -50,6 +56,20 @@
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
 }
+
+-(void) doubleTap:(UIGestureRecognizer*) recognizer {
+    if (UIGestureRecognizerStateEnded == recognizer.state)
+    {
+        CGPoint p = [recognizer locationInView:recognizer.view];
+        NSIndexPath* indexPath = [self.tableView indexPathForRowAtPoint:p];
+        UITableViewCell* cell = [self.tableView cellForRowAtIndexPath:indexPath];
+        // Do your stuff
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:cell.textLabel.text message:@"How are you?" delegate:nil cancelButtonTitle:@"I'm awesome." otherButtonTitles:nil];
+        [alert show];
+    }
+}
+
+
 
 - (void)didReceiveMemoryWarning
 {
@@ -61,14 +81,12 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-#warning Potentially incomplete method implementation.
     // Return the number of sections.
     return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-#warning Incomplete method implementation.
     // Return the number of rows in the section.
     return [self.toDoItems count];
 }
@@ -85,7 +103,6 @@
     [self.toDoItems addObject:item3];
 }
 
-
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ListPrototypeCell" forIndexPath:indexPath];
@@ -101,7 +118,6 @@
     
     return cell;
 }
-
 
 /*
 // Override to support conditional editing of the table view.
