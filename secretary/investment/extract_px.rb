@@ -6,7 +6,7 @@ require 'parseconfig'
 
 
 # load configuration
-config = ParseConfig.new('invest.cfg')
+config = ParseConfig.new('../core/secretary.cfg')
 db_host = config['db_host']
 db_user = config['db_user']
 db_password = config['db_password']
