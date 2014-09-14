@@ -8,7 +8,7 @@ require 'parseconfig'
 tickers = ['BAACEZ', 'BAAEFORU', 'BAAERGAB', 'BAAFOREG', 'BAAKOMB', 'BAATELEC', 'BAAPEGAS', 'BAATABAK', 'BAAVIG']
 
 # load configuration
-config = ParseConfig.new('../core/secretary.cfg')
+config = ParseConfig.new('../secretary.cfg')
 db_host = config['db_host']
 db_user = config['db_user']
 db_password = config['db_password']

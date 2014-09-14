@@ -6,16 +6,18 @@ require 'date'
 
 
 # load configuration
-config = ParseConfig.new('../core/secretary.cfg')
+config = ParseConfig.new('../secretary.cfg')
 db_host = config['db_host']
 db_user = config['db_user']
 db_password = config['db_password']
 db_name = config['db_name']
 mysql_dir = config['mysql_dir']
+gmail_login = config['gmail_login']
+gmail_password = config['gmail_password']
 
 
 # connect to the report
-session = GoogleDrive.login("jiri.stovicek@gmail.com", "Ein8stein")
+session = GoogleDrive.login(gmail_login, gmail_password)
 ws = session.spreadsheet_by_key("1QhFgpXRHVqEbOe3nZqtMk_SYPYUFWr5gu211fBrC6VQ").worksheets[1]
 
 # find last row
