@@ -4,7 +4,7 @@ require 'mysql'
 
 
 # load configuration
-config = ParseConfig.new('extractor.cfg')
+config = ParseConfig.new('invest.cfg')
 db_host = config['db_host']
 db_user = config['db_user']
 db_password = config['db_password']
