@@ -2,5 +2,6 @@
 *.zip
 *.xls
 *.xlsx
+*.log
 dump.sql
 .DS_Store
