@@ -3,5 +3,6 @@
 *.xls
 *.xlsx
 *.log
+*.pdf
 dump.sql
 .DS_Store

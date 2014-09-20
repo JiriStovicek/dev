@@ -1,23 +1,18 @@
 require 'rubygems'
-require 'parseconfig'
 require 'mysql'
 require 'google_drive'
 require 'date'
+require 'logger'
+require_relative 'configuration'
 
 
-# load configuration
-config = ParseConfig.new('../secretary.cfg')
-db_host = config['db_host']
-db_user = config['db_user']
-db_password = config['db_password']
-db_name = config['db_name']
-mysql_dir = config['mysql_dir']
-gmail_login = config['gmail_login']
-gmail_password = config['gmail_password']
+# start logging
+log = Logger.new(Configuration['log_file'])
+log.debug("Report creating started")
 
 
 # connect to the report
-session = GoogleDrive.login(gmail_login, gmail_password)
+session = GoogleDrive.login(Configuration['gmail_login'], Configuration['gmail_password'])
 ws = session.spreadsheet_by_key("1QhFgpXRHVqEbOe3nZqtMk_SYPYUFWr5gu211fBrC6VQ").worksheets[1]
 
 # find last row
@@ -30,9 +25,9 @@ last_day = Date.strptime(ws[i_row - 1, 1], '%m/%d/%Y')
 
 # connect to db
 begin
-  db = Mysql.new(db_host, db_user, db_password, db_name)
+  db = Mysql.new(Configuration['db_host'], Configuration['db_user'], Configuration['db_password'], Configuration['db_name'])
 rescue
-  puts "ERROR - Unable to connect to the data base"
+  log.error("Unable to connect to the database")
   exit 1;
 end
 
@@ -48,3 +43,11 @@ result.each do |x|
 end
 
 ws.synchronize()
+
+log.debug("Online report updated")
+
+
+# download report to pdf
+fname = 'data/investment.pdf'
+session.spreadsheet_by_key("1QhFgpXRHVqEbOe3nZqtMk_SYPYUFWr5gu211fBrC6VQ").export_as_file(fname, 'pdf', 1064105070)
+log.info("Report downloaded to #{fname}")
