@@ -2,18 +2,3 @@ start, stop db:
 
 sudo /usr/local/mysql/bin/mysqld_safe
 sudo /usr/local/mysql/bin/mysqladmin shutdown
-
-
-
-dump, restore:
-
-mysqldump --user=sql551396 --password=aG5*lH7% --host=sql5.freesqldatabase.com sql551396 > db_dump.sql
-
-
-
-
-create user 'jirka'@'localhost' identified by '1q2w3e'
-
-create database invest;
-
-mysql> GRANT ALL PRIVILEGES ON invest.* TO 'jirka'@'localhost' WITH GRANT OPTION;

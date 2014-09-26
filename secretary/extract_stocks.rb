@@ -6,9 +6,6 @@ require 'logger'
 require_relative 'configuration'
 
 
-TICKERS = ['BAACEZ', 'BAAEFORU', 'BAAERGAB', 'BAAFOREG', 'BAAKOMB', 'BAATELEC', 'BAAPEGAS', 'BAATABAK', 'BAAVIG']
-
-
 # start logging
 log = Logger.new(Configuration['log_file'])
 log.debug("PX extract started")
@@ -32,6 +29,7 @@ log.debug("Last stock record found: #{last_date}")
 
 
 # load missing days till yesterday
+tickers = Configuration.get_array('tickers')
 day = last_date + 1
 while (day < Date.today) do
 
@@ -39,7 +37,7 @@ while (day < Date.today) do
   log.debug("Processing stock page: #{url}")
   page = Nokogiri::HTML(open(url))
 
-  rows = page.css('tbody').css('tr').select { |i| TICKERS.include?( i.css('td')[1].text ) }
+  rows = page.css('tbody').css('tr').select { |i| tickers.include?( i.css('td')[1].text ) }
 
   if (rows.length > 0)
     values = rows.map { |r| [r.css('td')[1].text, r.css('td')[3].text.gsub(' ','').gsub(',','.').to_f] }
