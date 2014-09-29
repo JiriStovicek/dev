@@ -17,12 +17,18 @@ names = {
   "VIG" => "VIG"}
   
 
+# start logging
+log = Logger.new(Configuration['log_file'])
+log.debug("Stock price update started")
+
+
 # parse data from web
 page = Nokogiri::HTML(open("http://www.akcie.cz/kurzy-cz/bcpp-vse"))
 
 rows = page.css('tbody').css('tr').select { |i| names.keys.include? i.css('td').css('a').text }
 
 if (rows.length == 0)
+  log.error("No prices found on web")
   exit 1
 end
 
@@ -50,3 +56,5 @@ while ! ws[i_row, 1].empty? do
 end
 
 ws.synchronize()
+
+log.info("Stock prices have been updated")
