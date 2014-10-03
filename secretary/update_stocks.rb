@@ -19,7 +19,7 @@ names = {
 
 # start logging
 log = Logger.new(Configuration['log_file'])
-log.debug("Stock price update started")
+log.debug("Stock prices update started")
 
 
 # parse data from web
