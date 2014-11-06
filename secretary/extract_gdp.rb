@@ -32,7 +32,7 @@ log.debug("Last GDP record found: #{last_date}")
 # download gdp quarterly
 fname = 'data/gdp.xls'
 File.open(fname, "wb") do |file|
-  file.write open('http://www.czso.cz/csu/csu.nsf/i/tab_vs/$File/tab_vs_2q14r.xlsx').read
+  file.write open('http://www.czso.cz/csu/csu.nsf/i/tab_vs/$File/tab_vs_2q14r1.xlsx').read
 end
 log.debug("GDP source downloaded to #{fname}")
 

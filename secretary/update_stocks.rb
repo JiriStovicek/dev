@@ -14,7 +14,8 @@ names = {
   "KOMERČNÍ BANKA" => "KOMB",
   "PEGAS NONWOVENS SA" => "PEGAS",
   "PHILIP MORRIS ČR" => "TABAK",
-  "VIG" => "VIG"}
+  "VIG" => "VIG",
+  "STOCK SPIRITS GROUP" => "STOCK"}
   
 
 # start logging
@@ -42,7 +43,7 @@ ws = session.spreadsheet_by_key("0AvJP0_lCRv_udGk2bkZsQ0hydnJxWTh1Q1hIbHdXQUE").
 # create price hash
 prices = values.inject(Hash.new{ |h,k| h[k]=[] }) { |h,(k,v)| h[k] << v; h }
 
-i_row = 1
+i_row = 2
 while ! ws[i_row, 1].empty? do
   
   ticker = ws[i_row, 1]
