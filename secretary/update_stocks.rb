@@ -3,6 +3,7 @@ require 'nokogiri'
 require 'open-uri'
 require 'google_drive'
 require_relative 'configuration'
+require_relative 'google_connector'
 
 
 names = {
@@ -24,44 +25,15 @@ page = Nokogiri::HTML(open("http://www.akcie.cz/kurzy-cz/bcpp-vse"))
 rows = page.css('tbody').css('tr').select { |i| names.keys.include? i.css('td').css('a').text }
 
 if (rows.length == 0)
-  log.error("No prices found on web")
+  puts "No prices found on web"
   exit 1
 end
 
 values = rows.map { |r| [names[r.css('td').css('a').text], r.css('td')[2].text.gsub(' ','').gsub(',','.').to_f]  }
 
-
-# Authorize with OAuth and gets an access token.
-client = Google::APIClient.new(
-  :application_name => 'Secretary',
-  :application_version => '1.0.0'
-)
-
-auth = client.authorization
-auth.client_id = "1051680518002-9hobo0bdki25md0dfojj488s8ja581bk.apps.googleusercontent.com"
-auth.client_secret = "-HBKoYLC-7nr93_eB9O5Nb49"
-auth.scope =
-    "https://www.googleapis.com/auth/drive " +
-    "https://spreadsheets.google.com/feeds/"
-auth.redirect_uri = "urn:ietf:wg:oauth:2.0:oob"
-
-if (File.exists?('refresh_token')) then
-	auth.refresh_token = File.read('refresh_token')
-else
-	print("1. Open this page:\n%s\n\n" % auth.authorization_uri)
-	print("2. Enter the authorization code shown in the page: ")
-	auth.code = $stdin.gets.chomp
-end
-
-auth.fetch_access_token!
-File.write('refresh_token', auth.refresh_token)
-
-
-# Create a session.
-session = GoogleDrive.login_with_oauth(auth.access_token)
-
-
 # connect to the spreadsheet
+gc = GoogleConnector.new
+session = gc.get_session("1051680518002-9hobo0bdki25md0dfojj488s8ja581bk.apps.googleusercontent.com", "-HBKoYLC-7nr93_eB9O5Nb49")
 ws = session.spreadsheet_by_key("0AvJP0_lCRv_udGk2bkZsQ0hydnJxWTh1Q1hIbHdXQUE").worksheets[0]
 
 # create price hash
