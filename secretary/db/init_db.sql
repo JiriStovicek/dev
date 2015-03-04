@@ -46,7 +46,7 @@ CREATE TABLE tr_account
 
 CREATE TABLE transaction
 (
-  id bigint,
+  id varchar(10),
   amount bigint not null,
   account_id bigint not null,
   note varchar(32),

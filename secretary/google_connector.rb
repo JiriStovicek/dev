@@ -15,8 +15,8 @@ class GoogleConnector
   def get_session(client_id, client_secret)
     
     client = Google::APIClient.new(
-      :application_name => app_name,
-      :application_version => app_version
+      :application_name => @app_name,
+      :application_version => @app_version
     )
 
     auth = client.authorization

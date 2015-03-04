@@ -33,7 +33,7 @@ values = rows.map { |r| [names[r.css('td').css('a').text], r.css('td')[2].text.g
 
 # connect to the spreadsheet
 gc = GoogleConnector.new
-session = gc.get_session("1051680518002-9hobo0bdki25md0dfojj488s8ja581bk.apps.googleusercontent.com", "-HBKoYLC-7nr93_eB9O5Nb49")
+session = gc.get_session(Configuration['client_id'], Configuration['client_secret'])
 ws = session.spreadsheet_by_key("0AvJP0_lCRv_udGk2bkZsQ0hydnJxWTh1Q1hIbHdXQUE").worksheets[0]
 
 # create price hash
