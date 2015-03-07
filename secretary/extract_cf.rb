@@ -63,14 +63,14 @@ def get_transactions(spreadsheet)
 	# get revenues
     r = 2
     while ! ws[r,1].empty?
-      transactions << [Date.new(year, month, 1), ws[r,1], ws[r,2].gsub(',','').to_i, ws[r,3]]
+      transactions << [Date.new(year, month, 1), ws[r,1], ws[r,2].gsub(',','').to_i, ws[r,3].gsub("'","''")]
       r = r + 1
     end
     
     # get costs
     r = 2
     while ! ws[r,5].empty?  
-      transactions << [Date.new(year, month, 1), ws[r,5], ws[r,6].gsub(',','').to_i, ws[r,7]]
+      transactions << [Date.new(year, month, 1), ws[r,5], ws[r,6].gsub(',','').to_i * -1, ws[r,7].gsub("'","''")]
       r = r + 1
     end
  
