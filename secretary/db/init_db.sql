@@ -13,7 +13,7 @@ DROP TABLE IF EXISTS `tr_type`;
 
 CREATE TABLE tr_type
 (
-  id bigint,
+  id bigint not null,
   name varchar(32) not null,
 
   primary key(id)
@@ -22,7 +22,7 @@ CREATE TABLE tr_type
 
 CREATE TABLE tr_category
 (
-  id bigint,
+  id bigint not null,
   name varchar(32) not null,
   type_id bigint not null,
 
@@ -34,7 +34,7 @@ CREATE TABLE tr_category
 
 CREATE TABLE tr_account
 (
-  id bigint,
+  id bigint not null auto_increment,
   name varchar(32) not null,
   category_id bigint not null,
 
@@ -46,10 +46,11 @@ CREATE TABLE tr_account
 
 CREATE TABLE transaction
 (
-  id varchar(10),
+  id bigint not null auto_increment,
   amount bigint not null,
   account_id bigint not null,
   note varchar(32),
+  t_date date,
 
   primary key(id),
   foreign key(account_id) references tr_account(id)
@@ -59,3 +60,17 @@ CREATE TABLE transaction
 insert into tr_type(id,name) values (1,'Revenue'),(2,'Cost');
 
 insert into tr_category(id,name,type_id) values (1,'Job',1),(2,'Passive',1),(3,'Rest',1),(4,'Needs',2),(5,'Savings',2),(6,'Wants',2);
+
+
+
+
+CREATE TABLE stage_transaction
+(
+  amount bigint,
+  account varchar(32),
+  account_id bigint,
+  type varchar(32),
+  type_id bigint,
+  note varchar(32),
+  t_date date
+);
