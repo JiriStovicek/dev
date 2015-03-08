@@ -1,15 +1,15 @@
 --create user 'jirka'@'localhost' identified by '1q2w3e'
-
 --create database secretary;
-
 --GRANT ALL PRIVILEGES ON secretary.* TO 'jirka'@'localhost' WITH GRANT OPTION;
 
 
+-- CASH FLOW
+
+DROP VIEW IF EXISTS `v_transactions`;
 DROP TABLE IF EXISTS `transaction`;
 DROP TABLE IF EXISTS `tr_account`;
 DROP TABLE IF EXISTS `tr_category`;
 DROP TABLE IF EXISTS `tr_type`;
-
 
 CREATE TABLE tr_type
 (
@@ -18,7 +18,6 @@ CREATE TABLE tr_type
 
   primary key(id)
 );
-
 
 CREATE TABLE tr_category
 (
@@ -30,8 +29,6 @@ CREATE TABLE tr_category
   foreign key(type_id) references tr_type(id)
 );
 
-
-
 CREATE TABLE tr_account
 (
   id bigint not null auto_increment,
@@ -41,8 +38,6 @@ CREATE TABLE tr_account
   primary key(id),
   foreign key(category_id) references tr_category(id)
 );
-
-
 
 CREATE TABLE transaction
 (
@@ -56,13 +51,9 @@ CREATE TABLE transaction
   foreign key(account_id) references tr_account(id)
 );
 
-
 insert into tr_type(id,name) values (1,'Revenue'),(2,'Cost');
 
 insert into tr_category(id,name,type_id) values (1,'Job',1),(2,'Passive',1),(3,'Rest',1),(4,'Needs',2),(5,'Savings',2),(6,'Wants',2);
-
-
-
 
 CREATE VIEW v_transactions
 AS
@@ -70,4 +61,37 @@ select year(t.t_date) year, month(t.t_date) month, typ.name type, c.name categor
 from transaction t
 join tr_account a on t.account_id = a.id
 join tr_category c on a.category_id = c.id
-join tr_type typ on c.type_id = typ.id
+join tr_type typ on c.type_id = typ.id;
+
+
+-- STOCKS
+
+DROP TABLE IF EXISTS st_trades;
+DROP TABLE IF EXISTS stock;
+
+CREATE TABLE stock
+(
+  id bigint not null auto_increment,
+  ticker varchar(32) not null,
+  company varchar(64),
+  
+  primary key(id)
+);
+
+CREATE TABLE st_trades
+(
+  id bigint not null auto_increment,
+  stock_id bigint not null,
+  quantity int not null,
+  
+  buy_date date not null,
+  buy_price decimal(8,2) not null,
+  buy_charge decimal(8,2) not null,
+  
+  sell_date date,
+  sell_price decimal(8,2),
+  sell_charge decimal(8,2),
+  
+  primary key(id),
+  foreign key(stock_id) references stock(id)
+);
