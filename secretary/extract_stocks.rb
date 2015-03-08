@@ -51,8 +51,8 @@ def extract_trades(spreadsheet, db)
   end
   
   # translate tickers to id
-  ticker_h = load_tickers(db)
-  trades.each { |t| t[0] = ticker_h[t[0]] }
+  tickers_h = load_tickers(db)
+  trades.each { |t| t[0] = tickers_h[t[0]] }
 
   # save into db
   values = []  
@@ -75,6 +75,30 @@ def extract_trades(spreadsheet, db)
 end
 
 
+def extract_dividends(spreadsheet, db)
+  # get tickers in spreadsheet
+  ws = spreadsheet.worksheet_by_title('Dividends')
+  dividends = []
+  r = 2
+  while r <= ws.num_rows do
+    # ticker, record_day, dividend_brutto, dividend_netto
+    dividends << [ws[r,1], ws[r,2], ws[r,3], ws[r,4]] unless ws[r,1].empty?
+    r += 1
+  end
+
+  # load existing tickers
+  tickers_h = load_tickers(db)
+  dividends.each { |t| t[0] = tickers_h[t[0]] }
+  
+  values = dividends.map { |d| "(#{d[0]}, STR_TO_DATE('#{d[1]}', '%m/%d/%Y'), #{d[2]}, #{d[3]})" }.join(',')
+  query_delete = "DELETE FROM st_dividends"
+  query_insert = "INSERT INTO st_dividends (stock_id, record_day, dividend_brutto, dividend_netto) VALUES #{values}"
+  
+  puts db.query(query_delete)
+  puts db.query(query_insert)
+end
+
+
 
 # create Google session
 gc = GoogleConnector.new
@@ -91,7 +115,7 @@ end
 
 
 
-extract_tickers(spreadsheet, db)
-extract_trades(spreadsheet, db)
+#extract_tickers(spreadsheet, db)
+#extract_trades(spreadsheet, db)
+extract_dividends(spreadsheet, db)
 # extract company repords
-# extract dividends
