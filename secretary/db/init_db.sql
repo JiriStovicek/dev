@@ -74,7 +74,8 @@ CREATE TABLE stock
 (
   id bigint not null auto_increment,
   ticker varchar(32) not null,
-  company varchar(64),
+  shares bigint,
+  report_currency char(3),
   
   primary key(id)
 );
@@ -100,7 +101,9 @@ CREATE TABLE st_dividends
   stock_id bigint not null,
   record_day date not null,
   dividend_brutto decimal(8,2) not null,
-  dividend_netto decimal(8,2) not null,
+  exchange_rate decimal(8,2),
+  tax_rate decimal(4,2) not null,
+  dividend_netto_czk decimal(8,2) not null,
   
   foreign key(stock_id) references stock(id)
 );

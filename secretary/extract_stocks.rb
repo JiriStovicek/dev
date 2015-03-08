@@ -70,7 +70,7 @@ def extract_trades(spreadsheet, db)
 
   db.query("START TRANSACTION;")
   db.query(query_delete)
-  db.query(query_insert)  
+  db.query(query_insert)
   db.query("COMMIT;")
 end
 
@@ -82,7 +82,7 @@ def extract_dividends(spreadsheet, db)
   r = 2
   while r <= ws.num_rows do
     # ticker, record_day, dividend_brutto, dividend_netto
-    dividends << [ws[r,1], ws[r,2], ws[r,3], ws[r,4]] unless ws[r,1].empty?
+    dividends << [ws[r,1], ws[r,2], ws[r,3], ws[r,4], ws[r,5], ws[r,6]] unless ws[r,1].empty?
     r += 1
   end
 
@@ -90,12 +90,12 @@ def extract_dividends(spreadsheet, db)
   tickers_h = load_tickers(db)
   dividends.each { |t| t[0] = tickers_h[t[0]] }
   
-  values = dividends.map { |d| "(#{d[0]}, STR_TO_DATE('#{d[1]}', '%m/%d/%Y'), #{d[2]}, #{d[3]})" }.join(',')
+  values = dividends.map { |d| "(#{d[0]}, STR_TO_DATE('#{d[1]}', '%m/%d/%Y'), #{d[2]}, #{d[3].to_f / 100}, #{d[4]}, #{d[5]})" }.join(',')
   query_delete = "DELETE FROM st_dividends"
-  query_insert = "INSERT INTO st_dividends (stock_id, record_day, dividend_brutto, dividend_netto) VALUES #{values}"
-  
-  puts db.query(query_delete)
-  puts db.query(query_insert)
+  query_insert = "INSERT INTO st_dividends (stock_id, record_day, dividend_brutto, tax_rate, exchange_rate, dividend_netto_czk) VALUES #{values}"
+
+  db.query(query_delete)
+  db.query(query_insert)
 end
 
 
