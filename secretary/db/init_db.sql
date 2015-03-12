@@ -66,6 +66,7 @@ join tr_type typ on c.type_id = typ.id;
 
 -- STOCKS
 
+DROP TABLE IF EXISTS st_report;
 DROP TABLE IF EXISTS st_dividends;
 DROP TABLE IF EXISTS st_trades;
 DROP TABLE IF EXISTS stock;
@@ -104,6 +105,21 @@ CREATE TABLE st_dividends
   exchange_rate decimal(8,2),
   tax_rate decimal(4,2) not null,
   dividend_netto_czk decimal(8,2) not null,
+  
+  foreign key(stock_id) references stock(id)
+);
+
+CREATE TABLE st_report
+(
+  stock_id bigint not null,
+  report_date date not null,
+  periods_per_year smallint not null,
+  period_number smallint not null,
+  
+  assets bigint not null,
+  equity bigint not null,
+  income bigint not null,
+  profit bigint not null,
   
   foreign key(stock_id) references stock(id)
 );

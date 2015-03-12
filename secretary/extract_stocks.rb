@@ -99,6 +99,63 @@ def extract_dividends(spreadsheet, db)
 end
 
 
+def extract_reports(spreadsheet, db)
+  reports = []
+  tickers_h = load_tickers(db)
+  tickers_h.keys.each do |t|
+  
+    # open worksheet identified by each ticker  
+    ws = spreadsheet.worksheet_by_title(t)
+    if ws.nil?
+      puts "Reports for #{t} not found"
+    else
+     
+      # load reports of a single company
+      r = 2
+      while r <= ws.num_rows do
+        # ticker, period, income, profit, assets, equity
+        reports << [t, ws[r,1], ws[r,2], ws[r,3], ws[r,4], ws[r,5]] unless ws[r,1].empty?
+        r += 1
+      end
+      
+    end
+  end
+  
+  values = reports.map do |r|
+    # parse year
+    period = r[1]
+    year = period[0..3].to_i
+    
+    # parse period type and number
+    periods_per_year = 1
+    period_number = 1
+    
+    if period.length > 4
+      if period[4] == 'Q'
+        periods_per_year = 4
+      elsif period[4] == 'H'
+        periods_per_year = 2
+      end
+      
+      period_number = period[5].to_i
+    end
+    
+    date = Date.new(year,1,1) >> 12 * period_number / periods_per_year
+
+    "(#{tickers_h[r[0]]}, '#{date}', #{periods_per_year}, #{period_number}, #{r[4]}, #{r[5]}, #{r[2]}, #{r[3]})"
+  end
+  
+  values = values.join(',')
+  
+  query_delete = "DELETE FROM st_report"
+  query_insert = "INSERT INTO st_report (stock_id, report_date, periods_per_year, period_number, assets, equity, income, profit) VALUES #{values}"
+
+  db.query(query_delete)
+  db.query(query_insert)
+  
+end
+
+
 
 # create Google session
 gc = GoogleConnector.new
@@ -115,7 +172,7 @@ end
 
 
 
-#extract_tickers(spreadsheet, db)
-#extract_trades(spreadsheet, db)
+extract_tickers(spreadsheet, db)
+extract_trades(spreadsheet, db)
 extract_dividends(spreadsheet, db)
-# extract company repords
+extract_reports(spreadsheet, db)
