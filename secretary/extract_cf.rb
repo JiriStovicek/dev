@@ -114,8 +114,25 @@ def save_new_accounts(spreadsheet, db)
 end
 
 
-def load_cf_sheet(session, sheet_key, db)
+def get_balance(spreadsheet)  
+  ws = spreadsheet.worksheet_by_title('Metrics')
+  r = 2
+  balance = nil
+  
+  while balance.nil? && r < ws.num_rows do
+    if ws[r,10] == "Balance BOY" then
+      balance = ws[r,11].gsub(',','').to_i
+    end
+    r += 1
+  end
+  
+  balance
+end
 
+
+def load_cf_sheet(session, sheet_key, db)
+  puts "Processing CF spreadsheet #{sheet_key}"
+  
   spreadsheet = session.spreadsheet_by_key(sheet_key)
 
   save_new_accounts(spreadsheet, db)
@@ -129,6 +146,7 @@ def load_cf_sheet(session, sheet_key, db)
   
   # delete transactions in processing year
   year = get_year(spreadsheet)
+  puts "Year #{year}"
   query_delete = "DELETE FROM transaction WHERE year(t_date) = #{year};"
   
   # insert transactions
@@ -138,8 +156,26 @@ def load_cf_sheet(session, sheet_key, db)
 
   db.query("START TRANSACTION;")
   db.query(query_delete)
-  db.query(query_insert)  
+  db.query(query_insert)
   db.query("COMMIT;")
+  
+  puts "Transactions saved"
+  
+  # save balance if set
+  balance_boy = get_balance(spreadsheet)
+  if ! balance_boy.nil? then
+    query_delete = "DELETE FROM balance WHERE b_date = '#{Date.new(year,1,1)}'"
+    query_insert = "INSERT INTO balance (b_date, balance) VALUES ('#{Date.new(year,1,1)}', #{balance_boy})"
+
+    db.query("START TRANSACTION;")
+    db.query(query_delete)
+    db.query(query_insert)  
+    db.query("COMMIT;")
+    
+    puts "Balance saved"
+  else
+    puts "Balance not found"
+  end
  
 end
 

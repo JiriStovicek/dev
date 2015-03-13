@@ -6,10 +6,10 @@
 -- CASH FLOW
 
 DROP VIEW IF EXISTS `v_transactions`;
-DROP TABLE IF EXISTS `transaction`;
 DROP TABLE IF EXISTS `tr_account`;
 DROP TABLE IF EXISTS `tr_category`;
 DROP TABLE IF EXISTS `tr_type`;
+DROP TABLE IF EXISTS `transaction`;
 
 CREATE TABLE tr_type
 (
@@ -64,8 +64,20 @@ join tr_category c on a.category_id = c.id
 join tr_type typ on c.type_id = typ.id;
 
 
+-- BALANCE
+
+DROP TABLE IF EXISTS balance;
+
+CREATE TABLE balance
+(
+  b_date date,
+  balance bigint not null
+);
+
+
 -- STOCKS
 
+DROP TABLE IF EXISTS st_price;
 DROP TABLE IF EXISTS st_report;
 DROP TABLE IF EXISTS st_dividends;
 DROP TABLE IF EXISTS st_trades;
@@ -120,6 +132,15 @@ CREATE TABLE st_report
   equity bigint not null,
   income bigint not null,
   profit bigint not null,
+  
+  foreign key(stock_id) references stock(id)
+);
+
+CREATE TABLE st_price
+(
+  stock_id bigint not null,
+  price bigint not null,  
+  b_date date,
   
   foreign key(stock_id) references stock(id)
 );
