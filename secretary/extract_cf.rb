@@ -63,14 +63,16 @@ def get_transactions(spreadsheet)
 	# get revenues
     r = 2
     while ! ws[r,1].empty?
-      transactions << [Date.new(year, month, 1), ws[r,1], ws[r,2].gsub(',','').to_i, ws[r,3].gsub("'","''")]
+      # id, date, account, amount, description
+      transactions << ["#{year}_#{month}_R_#{r}", Date.new(year, month, 1), ws[r,1], ws[r,2].gsub(',','').to_i, ws[r,3].gsub("'","''")]
       r = r + 1
     end
     
     # get costs
     r = 2
-    while ! ws[r,5].empty?  
-      transactions << [Date.new(year, month, 1), ws[r,5], ws[r,6].gsub(',','').to_i * -1, ws[r,7].gsub("'","''")]
+    while ! ws[r,5].empty?
+      # id, date, account, amount, description
+      transactions << ["#{year}_#{month}_C_#{r}", Date.new(year, month, 1), ws[r,5], ws[r,6].gsub(',','').to_i * -1, ws[r,7].gsub("'","''")]
       r = r + 1
     end
  
@@ -142,7 +144,7 @@ def load_cf_sheet(session, sheet_key, db)
   
   # translate transaction account name to id
   accounts_h = load_accounts(db)
-  transactions.each { |t| t[1] = accounts_h[t[1]] }
+  transactions.each { |t| t[2] = accounts_h[t[2]] }
   
   # delete transactions in processing year
   year = get_year(spreadsheet)
@@ -150,10 +152,9 @@ def load_cf_sheet(session, sheet_key, db)
   query_delete = "DELETE FROM transaction WHERE year(t_date) = #{year};"
   
   # insert transactions
-  values = transactions.map { |t| "('#{t[0]}', #{t[1]}, #{t[2]}, '#{t[3]}')" }.join(', ')
-  query_insert = "INSERT INTO transaction (t_date, account_id, amount, note) VALUES #{values}"
+  values = transactions.map { |t| "('#{t[0]}', '#{t[1]}', #{t[2]}, #{t[3]}, '#{t[4]}')" }.join(', ')
+  query_insert = "INSERT INTO transaction (id, t_date, account_id, amount, note) VALUES #{values}"
   
-
   db.query("START TRANSACTION;")
   db.query(query_delete)
   db.query(query_insert)

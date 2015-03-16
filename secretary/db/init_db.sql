@@ -41,10 +41,10 @@ CREATE TABLE tr_account
 
 CREATE TABLE transaction
 (
-  id bigint not null auto_increment,
+  id varchar(16),
   amount bigint not null,
   account_id bigint not null,
-  note varchar(32),
+  note varchar(256) charset cp1250 collate cp1250_general_ci,
   t_date date,
 
   primary key(id),
