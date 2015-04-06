@@ -51,9 +51,11 @@ CREATE TABLE transaction
   foreign key(account_id) references tr_account(id)
 );
 
+
 insert into tr_type(id,name) values (1,'Revenue'),(2,'Cost');
 
 insert into tr_category(id,name,type_id) values (1,'Job',1),(2,'Passive',1),(3,'Rest',1),(4,'Needs',2),(5,'Savings',2),(6,'Wants',2);
+
 
 CREATE VIEW v_transactions
 AS

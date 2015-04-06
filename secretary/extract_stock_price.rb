@@ -37,7 +37,6 @@ puts "Last stock record found: #{last_date}"
 # load missing days till yesterday
 tickers = load_tickers(db)
 tickers_with_prep = tickers.keys.map { |t| "BAA#{t}"}
-puts tickers_with_prep
 
 day = last_date + 1
 while (day < Date.today) do
