@@ -7,6 +7,14 @@ require_relative 'google_connector'
 WORKSHEET_NAMES = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
 
 
+def load_versions(db)
+  versions = []
+  query = "select name, id from tr_version"
+  result = db.query(query)
+  result.each { |x| versions << x[0] << x[1] }
+  Hash[*versions]
+end
+
 def load_categories(db)
   categories = []
   query = "select name, id from tr_category"
@@ -139,7 +147,8 @@ def load_cf_sheet(session, sheet_key, db)
 
   save_new_accounts(spreadsheet, db)
  
-  # load transactions
+
+  ### save transactions (reality)
   transactions = get_transactions(spreadsheet)
   
   # translate transaction account name to id
@@ -150,10 +159,14 @@ def load_cf_sheet(session, sheet_key, db)
   year = get_year(spreadsheet)
   puts "Year #{year}"
   query_delete = "DELETE FROM transaction WHERE year(t_date) = #{year};"
-  
+
+  # add version = reality
+  versions = load_versions(db)
+  reality_id = versions["Reality"]
+
   # insert transactions
-  values = transactions.map { |t| "('#{t[0]}', '#{t[1]}', #{t[2]}, #{t[3]}, '#{t[4]}')" }.join(', ')
-  query_insert = "INSERT INTO transaction (id, t_date, account_id, amount, note) VALUES #{values}"
+  values = transactions.map { |t| "('#{t[0]}', '#{t[1]}', #{t[2]}, #{t[3]}, '#{t[4]}', #{reality_id})" }.join(', ')
+  query_insert = "INSERT INTO transaction (id, t_date, account_id, amount, note, version_id) VALUES #{values}"
   
   db.query("START TRANSACTION;")
   db.query(query_delete)
@@ -162,7 +175,47 @@ def load_cf_sheet(session, sheet_key, db)
   
   puts "Transactions saved"
   
-  # save balance if set
+  
+  ### save forecast
+  forecast_id = versions["Forecast"]
+  values = []
+  ws_forecast = spreadsheet.worksheet_by_title('Forecast')
+
+  for c in (Time.now.month + 1)..13 do
+    month = c - 1
+    t_date = Date.new(year, month, 1)
+    
+    for r in 8..19 do
+      if ! ws_forecast[r,1].empty?
+        account_name = ws_forecast[r,1]
+        account_id = accounts_h[account_name]
+        amount = ws_forecast[r,c].gsub(',','').to_i
+        id = "#{year}_#{month}_R_#{r}_F"
+        
+        values << "('#{id}', '#{t_date}', #{account_id}, #{amount}, '', #{forecast_id})"
+      end
+    end
+    
+    for r in 23..40 do
+      if ! ws_forecast[r,1].empty?
+        account_name = ws_forecast[r,1]
+        account_id = accounts_h[account_name]
+        amount = - ws_forecast[r,c].gsub(',','').to_i
+        id = "#{year}_#{month}_C_#{r}_F"
+        
+        values << "('#{id}', '#{t_date}', #{account_id}, #{amount}, '', #{forecast_id})"
+      end
+    end
+  end
+  
+  values = values.join(', ')
+  query = "INSERT INTO transaction (id, t_date, account_id, amount, note, version_id) VALUES #{values}"
+  db.query(query)
+  
+  puts "Forecast saved"
+
+  
+  ### save balance if set
   balance_boy = get_balance(spreadsheet)
   if ! balance_boy.nil? then
     query_delete = "DELETE FROM balance WHERE b_date = '#{Date.new(year,1,1)}'"

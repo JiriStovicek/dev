@@ -6,10 +6,19 @@
 -- CASH FLOW
 
 DROP VIEW IF EXISTS `v_transactions`;
+DROP TABLE IF EXISTS `transaction`;
+DROP TABLE IF EXISTS `tr_version`;
 DROP TABLE IF EXISTS `tr_account`;
 DROP TABLE IF EXISTS `tr_category`;
 DROP TABLE IF EXISTS `tr_type`;
-DROP TABLE IF EXISTS `transaction`;
+
+CREATE TABLE tr_version
+(
+  id bigint not null,
+  name varchar(32) not null,
+
+  primary key(id)
+);
 
 CREATE TABLE tr_type
 (
@@ -46,11 +55,15 @@ CREATE TABLE transaction
   account_id bigint not null,
   note varchar(256) charset cp1250 collate cp1250_general_ci,
   t_date date,
+  version_id bigint not null,
 
   primary key(id),
   foreign key(account_id) references tr_account(id)
+  foreign key(version_id) references tr_version(id)
 );
 
+
+insert into tr_version(id,name) values (1,'Reality'),(2,'Forecast');
 
 insert into tr_type(id,name) values (1,'Revenue'),(2,'Cost');
 
@@ -59,11 +72,20 @@ insert into tr_category(id,name,type_id) values (1,'Job',1),(2,'Passive',1),(3,'
 
 CREATE VIEW v_transactions
 AS
-select year(t.t_date) year, month(t.t_date) month, typ.name type, c.name category, a.name account, t.amount amount, t.note note
+select year(t.t_date) year, month(t.t_date) month, typ.name type, c.name category, a.name account, t.amount amount, t.note note, v.name version
 from transaction t
+join tr_version v on t.version_id = v.id
 join tr_account a on t.account_id = a.id
 join tr_category c on a.category_id = c.id
 join tr_type typ on c.type_id = typ.id;
+
+
+CREATE VIEW v_forecast
+AS
+select year, month, type, category, account, amount, note, version
+from v_transactions
+where (version = "Reality" and year < year(curdate()) or month < month(curdate()) )
+  or (version = "Forecast" and year = year(curdate()) and month >= month(curdate()))
 
 
 -- BALANCE
