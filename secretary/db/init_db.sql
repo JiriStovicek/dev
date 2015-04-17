@@ -80,14 +80,6 @@ join tr_category c on a.category_id = c.id
 join tr_type typ on c.type_id = typ.id;
 
 
-CREATE VIEW v_forecast
-AS
-select year, month, type, category, account, amount, note, version
-from v_transactions
-where (version = "Reality" and year < year(curdate()) or month < month(curdate()) )
-  or (version = "Forecast" and year = year(curdate()) and month >= month(curdate()))
-
-
 -- BALANCE
 
 DROP TABLE IF EXISTS balance;

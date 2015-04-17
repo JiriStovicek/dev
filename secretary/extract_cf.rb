@@ -180,6 +180,7 @@ def load_cf_sheet(session, sheet_key, db)
   forecast_id = versions["Forecast"]
   values = []
   ws_forecast = spreadsheet.worksheet_by_title('Forecast')
+  ws_reality = spreadsheet.worksheet_by_title('Report')
 
   for c in (Time.now.month + 1)..13 do
     month = c - 1
@@ -187,32 +188,40 @@ def load_cf_sheet(session, sheet_key, db)
     
     for r in 8..19 do
       if ! ws_forecast[r,1].empty?
-        account_name = ws_forecast[r,1]
-        account_id = accounts_h[account_name]
-        amount = ws_forecast[r,c].gsub(',','').to_i
-        id = "#{year}_#{month}_R_#{r}_F"
-        
-        values << "('#{id}', '#{t_date}', #{account_id}, #{amount}, '', #{forecast_id})"
+        amount_reality = ws_reality[r,c].gsub(',','').to_i
+        amount = ws_forecast[r,c].gsub(',','').to_i - amount_reality
+        if (amount > 0)
+          account_name = ws_forecast[r,1]
+          account_id = accounts_h[account_name]
+          id = "#{year}_#{month}_R_#{r}_F"
+          values << "('#{id}', '#{t_date}', #{account_id}, #{amount}, '', #{forecast_id})"
+        end  
       end
     end
     
     for r in 23..40 do
       if ! ws_forecast[r,1].empty?
-        account_name = ws_forecast[r,1]
-        account_id = accounts_h[account_name]
-        amount = - ws_forecast[r,c].gsub(',','').to_i
-        id = "#{year}_#{month}_C_#{r}_F"
-        
-        values << "('#{id}', '#{t_date}', #{account_id}, #{amount}, '', #{forecast_id})"
+        amount_reality = ws_reality[r,c].gsub(',','').to_i
+        amount = amount_reality - ws_forecast[r,c].gsub(',','').to_i
+        if (amount < 0)
+          account_name = ws_forecast[r,1]
+          account_id = accounts_h[account_name]
+          id = "#{year}_#{month}_C_#{r}_F"
+          values << "('#{id}', '#{t_date}', #{account_id}, #{amount}, '', #{forecast_id})"
+        end
       end
     end
   end
   
-  values = values.join(', ')
-  query = "INSERT INTO transaction (id, t_date, account_id, amount, note, version_id) VALUES #{values}"
-  db.query(query)
+  if ! values.empty?
+    values = values.join(', ')
+    query = "INSERT INTO transaction (id, t_date, account_id, amount, note, version_id) VALUES #{values}"
+    db.query(query)
   
-  puts "Forecast saved"
+    puts "Forecast saved"
+  else
+    puts "No forecast to be saved"
+  end
 
   
   ### save balance if set
