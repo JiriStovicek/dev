@@ -131,7 +131,7 @@ INSERT INTO out_cashflow_category_year (year, cashflow, revenues, costs, job, pa
 
 select year, sum(cashflow), sum(revenues), sum(costs), sum(job), sum(passive), sum(rest), sum(needs), sum(wants), sum(savings)
 from out_cashflow_category_month
-group by year
+group by year;
 
 
 

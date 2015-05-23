@@ -182,45 +182,47 @@ def load_cf_sheet(session, sheet_key, db)
   ws_forecast = spreadsheet.worksheet_by_title('Forecast')
   ws_reality = spreadsheet.worksheet_by_title('Report')
 
-  for c in (Time.now.month + 1)..13 do
-    month = c - 1
-    t_date = Date.new(year, month, 1)
+  if ! ws_forecast.nil?
+    for c in (Time.now.month + 1)..13 do
+      month = c - 1
+      t_date = Date.new(year, month, 1)
     
-    for r in 8..19 do
-      if ! ws_forecast[r,1].empty?
-        amount_reality = ws_reality[r,c].gsub(',','').to_i
-        amount = ws_forecast[r,c].gsub(',','').to_i - amount_reality
-        if (amount > 0)
-          account_name = ws_forecast[r,1]
-          account_id = accounts_h[account_name]
-          id = "#{year}_#{month}_R_#{r}_F"
-          values << "('#{id}', '#{t_date}', #{account_id}, #{amount}, '', #{forecast_id})"
-        end  
+      for r in 8..19 do
+        if ! ws_forecast[r,1].empty?
+          amount_reality = ws_reality[r,c].gsub(',','').to_i
+          amount = ws_forecast[r,c].gsub(',','').to_i - amount_reality
+          if (amount > 0)
+            account_name = ws_forecast[r,1]
+            account_id = accounts_h[account_name]
+            id = "#{year}_#{month}_R_#{r}_F"
+            values << "('#{id}', '#{t_date}', #{account_id}, #{amount}, '', #{forecast_id})"
+          end  
+        end
       end
-    end
     
-    for r in 23..40 do
-      if ! ws_forecast[r,1].empty?
-        amount_reality = ws_reality[r,c].gsub(',','').to_i
-        amount = amount_reality - ws_forecast[r,c].gsub(',','').to_i
-        if (amount < 0)
-          account_name = ws_forecast[r,1]
-          account_id = accounts_h[account_name]
-          id = "#{year}_#{month}_C_#{r}_F"
-          values << "('#{id}', '#{t_date}', #{account_id}, #{amount}, '', #{forecast_id})"
+      for r in 23..40 do
+        if ! ws_forecast[r,1].empty?
+          amount_reality = ws_reality[r,c].gsub(',','').to_i
+          amount = amount_reality - ws_forecast[r,c].gsub(',','').to_i
+          if (amount < 0)
+            account_name = ws_forecast[r,1]
+            account_id = accounts_h[account_name]
+            id = "#{year}_#{month}_C_#{r}_F"
+            values << "('#{id}', '#{t_date}', #{account_id}, #{amount}, '', #{forecast_id})"
+          end
         end
       end
     end
-  end
   
-  if ! values.empty?
-    values = values.join(', ')
-    query = "INSERT INTO transaction (id, t_date, account_id, amount, note, version_id) VALUES #{values}"
-    db.query(query)
+    if ! values.empty?
+      values = values.join(', ')
+      query = "INSERT INTO transaction (id, t_date, account_id, amount, note, version_id) VALUES #{values}"
+      db.query(query)
   
-    puts "Forecast saved"
-  else
-    puts "No forecast to be saved"
+      puts "Forecast saved"
+    else
+      puts "No forecast to be saved"
+    end
   end
 
   

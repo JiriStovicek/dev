@@ -12,8 +12,13 @@ rescue
 end
 
 
-file = File.open("transform_cf.sql", "rb")
-query_transform = file.read
+queries = ["transform_cf.sql", "transform_portfolio.sql"]
 
+queries.each do |q|
 
-db.query(query_transform)
+  file = File.open(q, "rb")
+  query = file.read
+  db.query(query)
+
+  db.abandon_results!
+end
