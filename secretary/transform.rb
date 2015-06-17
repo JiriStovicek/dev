@@ -12,7 +12,7 @@ rescue
 end
 
 
-queries = ["transform_cf.sql", "transform_portfolio.sql"]
+queries = ["transform_cf.sql", "transform_portfolio.sql", "transform_stock.sql"]
 
 queries.each do |q|
 

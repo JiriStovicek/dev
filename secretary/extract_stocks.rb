@@ -39,6 +39,24 @@ def extract_tickers(spreadsheet, db)
 end
 
 
+def extract_stock_details(spreadsheet, db)
+  # update share count and currency of stocks
+  ws = spreadsheet.worksheet_by_title('Analysis')
+
+  r = 2
+  while ! ws[r,1].empty? do
+  
+    shares = ws[r,15].empty? ? 'NULL' : ws[r,15]
+    report_currency = ws[r,14].empty? ? 'NULL' : "'#{ws[r,14]}'"
+  
+    query = "UPDATE stock SET report_currency = #{report_currency}, shares = #{shares} WHERE ticker = '#{ws[r,1]}'" #ticker, currency, shares
+    db.query(query)
+    r += 1
+  end
+  
+end
+
+
 def extract_trades(spreadsheet, db)
   # get trades
   ws = spreadsheet.worksheet_by_title('Trades')
@@ -173,6 +191,7 @@ end
 
 
 extract_tickers(spreadsheet, db)
+extract_stock_details(spreadsheet, db)
 extract_trades(spreadsheet, db)
 extract_dividends(spreadsheet, db)
 extract_reports(spreadsheet, db)
