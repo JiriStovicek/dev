@@ -164,16 +164,21 @@ def load_cf_sheet(session, sheet_key, db)
   versions = load_versions(db)
   reality_id = versions["Reality"]
 
-  # insert transactions
-  values = transactions.map { |t| "('#{t[0]}', '#{t[1]}', #{t[2]}, #{t[3]}, '#{t[4]}', #{reality_id})" }.join(', ')
-  query_insert = "INSERT INTO transaction (id, t_date, account_id, amount, note, version_id) VALUES #{values}"
+  if (transactions.empty?) then
+    puts "No transactions found for year #{year}"
+  else
+
+    # insert transactions
+    values = transactions.map { |t| "('#{t[0]}', '#{t[1]}', #{t[2]}, #{t[3]}, '#{t[4]}', #{reality_id})" }.join(', ')
+    query_insert = "INSERT INTO transaction (id, t_date, account_id, amount, note, version_id) VALUES #{values}"
   
-  db.query("START TRANSACTION;")
-  db.query(query_delete)
-  db.query(query_insert)
-  db.query("COMMIT;")
+    db.query("START TRANSACTION;")
+    db.query(query_delete)
+    db.query(query_insert)
+    db.query("COMMIT;")
   
-  puts "Transactions saved"
+    puts "Transactions saved"
+  end
   
   
   ### save forecast

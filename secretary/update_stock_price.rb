@@ -15,7 +15,8 @@ names = {
   "PEGAS NONWOVENS SA" => "PEGAS",
   "PHILIP MORRIS ČR" => "TABAK",
   "VIG" => "VIG",
-  "STOCK SPIRITS GROUP" => "STOCK"}
+  "STOCK SPIRITS GROUP" => "STOCK",
+  "KOFOLA ČS" => "KOFOL"}
   
 
 
