@@ -16,7 +16,8 @@ names = {
   "PHILIP MORRIS ČR" => "TABAK",
   "VIG" => "VIG",
   "STOCK SPIRITS GROUP" => "STOCK",
-  "KOFOLA ČS" => "KOFOL"}
+  "KOFOLA ČS" => "KOFOL",
+  "O2 C.R." => "TELEC"}
   
 
 
