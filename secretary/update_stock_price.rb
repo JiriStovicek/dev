@@ -17,7 +17,8 @@ names = {
   "VIG" => "VIG",
   "STOCK SPIRITS GROUP" => "STOCK",
   "KOFOLA ČS" => "KOFOL",
-  "O2 C.R." => "TELEC"}
+  "O2 C.R." => "TELEC",
+  "MONETA MONEY BANK" => "MONETA"}
   
 
 
