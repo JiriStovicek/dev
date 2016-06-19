@@ -1,5 +1,5 @@
 require 'rubygems'
-require 'mysql'
+require 'mysql2'
 require_relative 'configuration'
 require_relative 'google_connector'
 
@@ -11,7 +11,7 @@ def load_versions(db)
   versions = []
   query = "select name, id from tr_version"
   result = db.query(query)
-  result.each { |x| versions << x[0] << x[1] }
+  result.each { |x| versions << x['name'] << x['id'] }
   Hash[*versions]
 end
 
@@ -19,7 +19,9 @@ def load_categories(db)
   categories = []
   query = "select name, id from tr_category"
   result = db.query(query)
-  result.each { |x| categories << x[0] << x[1] }
+  puts result
+  result.each { |x| categories << x['name'] << x['id'] }
+  result.each { |x| puts x[0] }
   Hash[*categories]
 end
 
@@ -28,7 +30,7 @@ def load_accounts(db)
   accounts = []
   query = "select name, id from tr_account"
   result = db.query(query)
-  result.each { |x| accounts << x[0] << x[1] }
+  result.each { |x| accounts << x['name'] << x['id'] }
   Hash[*accounts]
 end
 
@@ -258,11 +260,12 @@ sheets = Configuration.get_array('cf_sheets')
 
 # connect to db
 begin
-  db = Mysql.new(Configuration['db_host'], Configuration['db_user'], Configuration['db_password'], Configuration['db_name'])
+  db = Mysql2::Client.new(:host => Configuration['db_host'], :database => Configuration['db_name'], :username => Configuration['db_user'], :password => Configuration['db_password'], :flags => Mysql2::Client::MULTI_STATEMENTS)
 rescue
   puts "Unable to connect to the database"
   exit 1;
 end
+
 
 # load CF sheets - all or the last one
 if Configuration['extract_last_cf_sheet_only'] == 'true'
