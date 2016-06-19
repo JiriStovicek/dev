@@ -1,5 +1,5 @@
 require 'rubygems'
-require 'mysql'
+require 'mysql2'
 require 'nokogiri'
 require 'open-uri'
 require_relative 'configuration'
@@ -10,7 +10,7 @@ def load_tickers(db)
   tickers = []
   query = "select ticker, id from stock"
   result = db.query(query)
-  result.each { |x| tickers << x[0] << x[1] }
+  result.each { |x| tickers << x['ticker'] << x['id'] }
   Hash[*tickers]
 end
 
@@ -46,9 +46,9 @@ def extract_stock_details(spreadsheet, db)
   r = 2
   while ! ws[r,1].empty? do
   
-    shares = ws[r,15].empty? ? 'NULL' : ws[r,15]
+    shares = ws[r,15].empty? ? 'NULL' : ws[r,15].gsub(',','')
     report_currency = ws[r,14].empty? ? 'NULL' : "'#{ws[r,14]}'"
-  
+
     query = "UPDATE stock SET report_currency = #{report_currency}, shares = #{shares} WHERE ticker = '#{ws[r,1]}'" #ticker, currency, shares
     db.query(query)
     r += 1
@@ -64,7 +64,7 @@ def extract_trades(spreadsheet, db)
   r = 3
   while ! ws[r,1].empty? do
     # ticker, buy_date, buy_price, quantity, buy_charge, sell_date, sell_price, sell_charge
-    trades << [ws[r,1], ws[r,2], ws[r,3], ws[r,4], ws[r,5].to_f.round(2), ws[r,15], ws[r,16], ws[r,17].to_f.round(2)]
+    trades << [ws[r,1], ws[r,2], ws[r,3].gsub(',',''), ws[r,4].gsub(',',''), ws[r,5].gsub(',','').to_f.round(2), ws[r,15], ws[r,16].gsub(',',''), ws[r,17].gsub(',','').to_f.round(2)]
     r += 1
   end
   
@@ -76,9 +76,9 @@ def extract_trades(spreadsheet, db)
   values = []  
   trades.each do |t| 
     if t[5].empty?  # not sold yet
-      values << "(#{t[0]}, STR_TO_DATE('#{t[1]}', '%m/%d/%Y'), #{t[2]}, #{t[3]}, #{t[4]}, null, null, null)"
+      values << "(#{t[0]}, STR_TO_DATE('#{t[1]}', '%Y-%m-%d'), #{t[2]}, #{t[3]}, #{t[4]}, null, null, null)"
     else
-      values << "(#{t[0]}, STR_TO_DATE('#{t[1]}', '%m/%d/%Y'), #{t[2]}, #{t[3]}, #{t[4]}, STR_TO_DATE('#{t[5]}', '%m/%d/%Y'), #{t[6]}, #{t[7]})"
+      values << "(#{t[0]}, STR_TO_DATE('#{t[1]}', '%Y-%m-%d'), #{t[2]}, #{t[3]}, #{t[4]}, STR_TO_DATE('#{t[5]}', '%Y-%m-%d'), #{t[6]}, #{t[7]})"
     end
   end
   values = values.join(',')
@@ -108,12 +108,14 @@ def extract_dividends(spreadsheet, db)
   tickers_h = load_tickers(db)
   dividends.each { |t| t[0] = tickers_h[t[0]] }
   
-  values = dividends.map { |d| "(#{d[0]}, STR_TO_DATE('#{d[1]}', '%m/%d/%Y'), #{d[2]}, #{d[3].to_f / 100}, #{d[4]}, #{d[5]})" }.join(',')
+  values = dividends.map { |d| "(#{d[0]}, STR_TO_DATE('#{d[1]}', '%Y-%m-%d'), #{d[2].gsub(',','')}, #{d[3].gsub(',','').to_f / 100}, #{d[4].gsub(',','')}, #{d[5].gsub(',','')})" }.join(',')
   query_delete = "DELETE FROM st_dividends"
   query_insert = "INSERT INTO st_dividends (stock_id, record_day, dividend_brutto, tax_rate, exchange_rate, dividend_netto_czk) VALUES #{values}"
 
+  db.query("START TRANSACTION;")
   db.query(query_delete)
   db.query(query_insert)
+  db.query("COMMIT;")
 end
 
 
@@ -160,7 +162,7 @@ def extract_reports(spreadsheet, db)
     
     date = Date.new(year,1,1) >> 12 * period_number / periods_per_year
 
-    "(#{tickers_h[r[0]]}, '#{date}', #{periods_per_year}, #{period_number}, #{r[4]}, #{r[5]}, #{r[2]}, #{r[3]})"
+    "(#{tickers_h[r[0]]}, '#{date}', #{periods_per_year}, #{period_number}, #{r[4].gsub(',','')}, #{r[5].gsub(',','')}, #{r[2].gsub(',','')}, #{r[3].gsub(',','')})"
   end
   
   values = values.join(',')
@@ -168,8 +170,10 @@ def extract_reports(spreadsheet, db)
   query_delete = "DELETE FROM st_report"
   query_insert = "INSERT INTO st_report (stock_id, report_date, periods_per_year, period_number, assets, equity, income, profit) VALUES #{values}"
 
+  db.query("START TRANSACTION;")
   db.query(query_delete)
   db.query(query_insert)
+  db.query("COMMIT;")
   
 end
 
@@ -182,7 +186,7 @@ spreadsheet = session.spreadsheet_by_key(Configuration['stock_sheet'])
 
 # connect to db
 begin
-  db = Mysql.new(Configuration['db_host'], Configuration['db_user'], Configuration['db_password'], Configuration['db_name'])
+  db = Mysql2::Client.new(:host => Configuration['db_host'], :database => Configuration['db_name'], :username => Configuration['db_user'], :password => Configuration['db_password'], :flags => Mysql2::Client::MULTI_STATEMENTS)
 rescue
   puts "Unable to connect to the database"
   exit 1;
