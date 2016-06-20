@@ -21,7 +21,6 @@ def load_categories(db)
   result = db.query(query)
   puts result
   result.each { |x| categories << x['name'] << x['id'] }
-  result.each { |x| puts x[0] }
   Hash[*categories]
 end
 
@@ -159,7 +158,7 @@ def load_cf_sheet(session, sheet_key, db)
   
   # delete transactions in processing year
   year = get_year(spreadsheet)
-  puts "Year #{year}"
+  puts "Loading year #{year} transactions"
   query_delete = "DELETE FROM transaction WHERE year(t_date) = #{year};"
 
   # add version = reality
@@ -265,7 +264,6 @@ rescue
   puts "Unable to connect to the database"
   exit 1;
 end
-
 
 # load CF sheets - all or the last one
 if Configuration['extract_last_cf_sheet_only'] == 'true'

@@ -8,7 +8,7 @@ require_relative 'google_connector'
 
 names = {
   "ČEZ" => "CEZ",
-  "E4U" => "E4U",
+  "E4U" => "EFORU",
   "ERSTE GROUP BANK AG" => "ERBAG",
   "FORTUNA" => "FOREG",
   "KOMERČNÍ BANKA" => "KOMB",
@@ -18,7 +18,7 @@ names = {
   "STOCK SPIRITS GROUP" => "STOCK",
   "KOFOLA ČS" => "KOFOL",
   "O2 C.R." => "TELEC",
-  "MONETA MONEY BANK" => "MONETA"}
+  "MONETA MONEY BANK" => "GECBA"}
   
 
 
