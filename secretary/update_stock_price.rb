@@ -42,6 +42,7 @@ ws = session.spreadsheet_by_key("0AvJP0_lCRv_udGk2bkZsQ0hydnJxWTh1Q1hIbHdXQUE").
 # create price hash
 prices = values.inject(Hash.new{ |h,k| h[k]=[] }) { |h,(k,v)| h[k] << v; h }
 
+# update values in spreadsheet
 i_row = 2
 while ! ws[i_row, 1].empty? do
   
