@@ -19,7 +19,6 @@ def load_categories(db)
   categories = []
   query = "select name, id from tr_category"
   result = db.query(query)
-  puts result
   result.each { |x| categories << x['name'] << x['id'] }
   Hash[*categories]
 end
