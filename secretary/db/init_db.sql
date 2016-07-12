@@ -155,8 +155,21 @@ CREATE TABLE st_report
 CREATE TABLE st_price
 (
   stock_id bigint not null,
-  price bigint not null,  
+  price decimal(10,2) not null,  
   b_date date,
   
   foreign key(stock_id) references stock(id)
+);
+
+-- EXCHANGE RATES
+
+DROP TABLE IF EXISTS balance;
+
+CREATE TABLE exchange_rate
+(
+  b_date date not null,
+  currency char(3) not null,
+  price decimal(10,2) not null,
+  
+  primary key(b_date, currency)
 );
