@@ -37,7 +37,8 @@ values = rows.map { |r| [names[r.css('td').css('a').text], r.css('td')[2].text.g
 # connect to the spreadsheet
 gc = GoogleConnector.new
 session = gc.get_session(Configuration['client_id'], Configuration['client_secret'])
-ws = session.spreadsheet_by_key("0AvJP0_lCRv_udGk2bkZsQ0hydnJxWTh1Q1hIbHdXQUE").worksheets[0]
+stock_sheet_key = Configuration["stock_sheet"]
+ws = session.spreadsheet_by_key(stock_sheet_key).worksheet_by_title('Analysis')
 
 # create price hash
 prices = values.inject(Hash.new{ |h,k| h[k]=[] }) { |h,(k,v)| h[k] << v; h }

@@ -5,8 +5,9 @@ require 'mysql2'
 
 
 MIN_DATE = Date.new(2007,1,1)
-BASE_CURRENCY = "CZK"
 CURRENCIES = ["EUR", "USD", "GBP"]
+
+base_currency = Configuration["base_currency"]
 
 
 # connect to db
@@ -36,14 +37,14 @@ end
 # load missing exchange rates till yesterday
 while (day < Date.today) do
 
-  url = "http://api.fixer.io/#{day.strftime("%F")}/?base=#{BASE_CURRENCY}"
+  url = "http://api.fixer.io/#{day.strftime("%F")}/?base=#{base_currency}"
   puts "Processing #{url}"
   uri = URI(url)
   response = Net::HTTP.get(uri)
   exch_hash = JSON.parse(response)
 
   values = CURRENCIES.map { |c| "('#{day}', '#{c}', #{1/exch_hash['rates'][c]})" }.join(', ')
-  values += ", ('#{day}', '#{BASE_CURRENCY}', 1)"
+  values += ", ('#{day}', '#{base_currency}', 1)"
   
   query = "insert into exchange_rate (b_date, currency, price) values #{values}"
   result = db.query(query)
