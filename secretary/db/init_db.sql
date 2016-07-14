@@ -141,6 +141,7 @@ CREATE TABLE st_report
 (
   stock_id bigint not null,
   report_date date not null,
+  period_year int not null,
   periods_per_year smallint not null,
   period_number smallint not null,
   
@@ -163,7 +164,7 @@ CREATE TABLE st_price
 
 -- EXCHANGE RATES
 
-DROP TABLE IF EXISTS balance;
+DROP TABLE IF EXISTS exchange_rate;
 
 CREATE TABLE exchange_rate
 (

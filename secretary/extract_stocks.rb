@@ -162,13 +162,13 @@ def extract_reports(spreadsheet, db)
     
     date = Date.new(year,1,1) >> 12 * period_number / periods_per_year
 
-    "(#{tickers_h[r[0]]}, '#{date}', #{periods_per_year}, #{period_number}, #{r[4].gsub(',','')}, #{r[5].gsub(',','')}, #{r[2].gsub(',','')}, #{r[3].gsub(',','')})"
+    "(#{tickers_h[r[0]]}, '#{year}', '#{date}', #{periods_per_year}, #{period_number}, #{r[4].gsub(',','')}, #{r[5].gsub(',','')}, #{r[2].gsub(',','')}, #{r[3].gsub(',','')})"
   end
   
   values = values.join(',')
   
   query_delete = "DELETE FROM st_report"
-  query_insert = "INSERT INTO st_report (stock_id, report_date, periods_per_year, period_number, assets, equity, income, profit) VALUES #{values}"
+  query_insert = "INSERT INTO st_report (stock_id, period_year, report_date, periods_per_year, period_number, assets, equity, income, profit) VALUES #{values}"
 
   db.query("START TRANSACTION;")
   db.query(query_delete)
