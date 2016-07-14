@@ -17,10 +17,3 @@ file = File.open("transform_stock.sql", "rb")
 query = file.read
 db.query(query)
 db.abandon_results!
-  
-
-# get date range
-result = db.query("select b_date, stock_id, price from out_stock_analysis_month")
-result.each { |row|
-	puts row["price"].to_f
-}

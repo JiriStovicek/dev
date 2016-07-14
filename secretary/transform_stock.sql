@@ -9,6 +9,8 @@ CREATE TABLE out_stock_analysis
 
   ticker varchar(32),
   shares bigint,
+  last_report_date date,
+  last_reported_quarter date,
   profit_last_4q_czk bigint,
   revenue_last_4q_czk bigint,
   assets_czk bigint,
@@ -48,7 +50,7 @@ from st_price;
 
 UPDATE out_stock_analysis a
 left outer join stock s on a.stock_id = s.id
-set a.ticker = s.ticker, a.shares = s.shares, a.report_currency = s.report_currency
+set a.ticker = s.ticker, a.shares = s.shares, a.report_currency = s.report_currency;
 
 -- update number of shares before KOMB split 1:5 on 12th May 2016
 
@@ -64,16 +66,23 @@ left outer join exchange_rate e on a.b_date = e.b_date and a.report_currency = e
 set a.exchange_rate = e.price;
 
 
+-- load last report date
+
+UPDATE out_stock_analysis a
+set a.last_report_date =
+  (select r.report_date
+  from st_report r
+  where r.stock_id = a.stock_id and r.report_date <= a.b_date order by r.report_date desc limit 1);
+
+
 -- load assets and equity in original report currency
 
 UPDATE out_stock_analysis a
-join st_report r on a.stock_id = r.stock_id and r.report_date = (select i.report_date from st_report i where i.stock_id = a.stock_id and i.report_date <= a.b_date limit 1)
+left outer join st_report r on a.last_report_date = r.report_date and r.stock_id = a.stock_id
 set a.assets = r.assets, a.equity = r.equity;
 
 
--- load profit and revenue in last 4 quarters, in original report currency
-
----- create temporary table with income and profit split into quarters
+-- create temporary table with income and profit split into quarters
 
 DROP TABLE IF EXISTS tmp_st_report_quarter_avg;
 
@@ -92,3 +101,17 @@ select r.stock_id, r.report_date, income / (4/r.periods_per_year) split_income, 
 join
   (select 1 q union select 2 union select 3 union select 4) quarters
   on quarters.q <= (4 / r.periods_per_year);
+
+
+-- load last reported quarter
+
+UPDATE out_stock_analysis a
+set a.last_reported_quarter = (select max(q.quarter_date) from tmp_st_report_quarter_avg q where a.stock_id = q.stock_id and q.report_date = a.last_report_date);
+
+-- load profit and revenue in last 4 quarters, in original report currency
+
+UPDATE out_stock_analysis a
+set a.profit_last_4q = (select sum(profit) from tmp_st_report_quarter_avg q where q.stock_id = a.stock_id and q.quarter_date <= a.last_reported_quarter and q.quarter_date > DATE_ADD(a.last_reported_quarter, INTERVAL -1 YEAR));
+
+UPDATE out_stock_analysis a
+set a.revenue_last_4q = (select sum(income) from tmp_st_report_quarter_avg q where q.stock_id = a.stock_id and q.quarter_date <= a.last_reported_quarter and q.quarter_date > DATE_ADD(a.last_reported_quarter, INTERVAL -1 YEAR));
