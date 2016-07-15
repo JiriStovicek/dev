@@ -9,32 +9,37 @@ CREATE TABLE out_stock_analysis
 
   ticker varchar(32),
   shares bigint,
-  last_report_date date,
+  report_currency char(3),
+  
+  exchange_rate decimal(10,2),
+  
+  last_report_publish_date date,
+  
+  assets bigint,
+  equity bigint,
+  
   last_reported_quarter date,
+  
+  profit_last_4q bigint,
+  revenue_last_4q bigint,
+  
   profit_last_4q_czk bigint,
   revenue_last_4q_czk bigint,
   assets_czk bigint,
   equity_czk bigint,
   
   debt_czk bigint,
-
-  roe decimal(5,2),
-  npm decimal(5,2),
+  debt_percent decimal(8,2),
+  roe decimal(5,4),
+  npm decimal(5,4),
   pe decimal(5,2),
   pb decimal(5,2),
   ps decimal(5,2),
-  debt_percent decimal(8,2),
-  dy decimal(5,2),
   
-  dividends_total bigint,
+  dividends_total_netto_czk bigint,
   balance_percent decimal(5,2),
   
-  assets bigint,
-  equity bigint,
-  profit_last_4q bigint,
-  revenue_last_4q bigint,
-  report_currency char(3),
-  exchange_rate decimal(10,2)
+  dy decimal(5,4)
 );
 
 
@@ -66,10 +71,10 @@ left outer join exchange_rate e on a.b_date = e.b_date and a.report_currency = e
 set a.exchange_rate = e.price;
 
 
--- load last report date
+-- load last report publish date
 
 UPDATE out_stock_analysis a
-set a.last_report_date =
+set a.last_report_publish_date =
   (select r.report_date
   from st_report r
   where r.stock_id = a.stock_id and r.report_date <= a.b_date order by r.report_date desc limit 1);
@@ -78,7 +83,7 @@ set a.last_report_date =
 -- load assets and equity in original report currency
 
 UPDATE out_stock_analysis a
-left outer join st_report r on a.last_report_date = r.report_date and r.stock_id = a.stock_id
+left outer join st_report r on a.last_report_publish_date = r.report_date and r.stock_id = a.stock_id
 set a.assets = r.assets, a.equity = r.equity;
 
 
@@ -106,7 +111,7 @@ join
 -- load last reported quarter
 
 UPDATE out_stock_analysis a
-set a.last_reported_quarter = (select max(q.quarter_date) from tmp_st_report_quarter_avg q where a.stock_id = q.stock_id and q.report_date = a.last_report_date);
+set a.last_reported_quarter = (select max(q.quarter_date) from tmp_st_report_quarter_avg q where a.stock_id = q.stock_id and q.report_date = a.last_report_publish_date);
 
 -- load profit and revenue in last 4 quarters, in original report currency
 
@@ -115,3 +120,28 @@ set a.profit_last_4q = (select sum(profit) from tmp_st_report_quarter_avg q wher
 
 UPDATE out_stock_analysis a
 set a.revenue_last_4q = (select sum(income) from tmp_st_report_quarter_avg q where q.stock_id = a.stock_id and q.quarter_date <= a.last_reported_quarter and q.quarter_date > DATE_ADD(a.last_reported_quarter, INTERVAL -1 YEAR));
+
+-- recalculate the assets, equity, revenue and profit to CZK based on exchange rate on each day
+
+UPDATE out_stock_analysis
+set assets_czk = assets * exchange_rate, equity_czk = equity * exchange_rate, profit_last_4q_czk = profit_last_4q * exchange_rate, revenue_last_4q_czk = revenue_last_4q * exchange_rate;
+
+-- calculate debt, percentual indebtedness, ROE, NPM, P/E, P/B, P/S
+
+UPDATE out_stock_analysis
+set debt_czk = assets_czk - equity_czk, debt_percent = (assets_czk - equity_czk) / equity_czk, roe = profit_last_4q / equity, npm = profit_last_4q / revenue_last_4q, pe = price / (profit_last_4q_czk / shares), pb = price / (equity_czk / shares), ps = price / (revenue_last_4q_czk / shares);
+
+-- load all dividends received from each b_date to today
+
+UPDATE out_stock_analysis a
+set a.dividends_total_netto_czk = IFNULL((select sum(d.dividend_netto_czk) from st_dividends d where a.stock_id = d.stock_id and d.record_day between a.b_date and CURDATE()), 0);
+
+-- calculate balance from each b_date to today (counting capital change and dividends)
+
+UPDATE out_stock_analysis a
+set a.balance_percent = ((select p.price from st_price p where a.stock_id = p.stock_id order by b_date desc limit 1) + a.dividends_total_netto_czk) / a.price;
+
+-- calculate dy (dividend yield) based on assumption the dividend is known from Jan 1 each year
+
+UPDATE out_stock_analysis a
+set a.dy = (select sum(d.dividend_netto_czk) from st_dividends d where d.stock_id = a.stock_id and year(record_day) = year(a.b_date)) / a.price;
