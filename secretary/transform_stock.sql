@@ -57,10 +57,10 @@ UPDATE out_stock_analysis a
 left outer join stock s on a.stock_id = s.id
 set a.ticker = s.ticker, a.shares = s.shares, a.report_currency = s.report_currency;
 
--- update number of shares before KOMB split 1:5 on 12th May 2016
-
+-- KOMB split 1:5 on 12th May 2016 - all historical dividends are already split on source, number of shares too
+-- update price before the split
 UPDATE out_stock_analysis
-set shares = shares / 5
+set price = price / 5
 where ticker = 'KOMB' and b_date <= "2016-05-11";
 
 
@@ -145,3 +145,14 @@ set a.balance_percent = ((select p.price from st_price p where a.stock_id = p.st
 
 UPDATE out_stock_analysis a
 set a.dy = (select sum(d.dividend_netto_czk) from st_dividends d where d.stock_id = a.stock_id and year(record_day) = year(a.b_date)) / a.price;
+
+-- create final view with fields relevant for further analysis
+
+DROP VIEW IF EXISTS v_stock_analysis;
+
+CREATE VIEW v_stock_analysis
+AS
+select b_date, ticker, price, revenue_last_4q_czk as revenue, profit_last_4q_czk as profit, assets_czk as assets, equity_czk as equity, debt_percent as indebtedness, roe, npm, pe, pb, ps, dy, balance_percent
+from out_stock_analysis
+where revenue_last_4q_czk is not null
+order by b_date asc, stock_id asc;
