@@ -37,7 +37,8 @@ CREATE TABLE out_stock_analysis
   ps decimal(5,2),
   
   dividends_total_netto_czk bigint,
-  balance_percent decimal(5,2),
+  change_percent decimal(5,2),
+  change_percent_pa decimal(5,2),
   
   dy decimal(5,4)
 );
@@ -139,7 +140,12 @@ set a.dividends_total_netto_czk = IFNULL((select sum(d.dividend_netto_czk) from 
 -- calculate balance from each b_date to today (counting capital change and dividends)
 
 UPDATE out_stock_analysis a
-set a.balance_percent = ((select p.price from st_price p where a.stock_id = p.stock_id order by b_date desc limit 1) + a.dividends_total_netto_czk) / a.price;
+set a.change_percent = (((select p.price from st_price p where a.stock_id = p.stock_id order by b_date desc limit 1) + a.dividends_total_netto_czk) / a.price) - 1;
+
+-- calculate balance per year
+
+UPDATE out_stock_analysis
+set change_percent_pa = change_percent / (YEAR(CURDATE()) - YEAR(b_date) + 1);
 
 -- calculate dy (dividend yield) based on assumption the dividend is known from Jan 1 each year
 
@@ -152,7 +158,7 @@ DROP VIEW IF EXISTS v_stock_analysis;
 
 CREATE VIEW v_stock_analysis
 AS
-select b_date, ticker, price, revenue_last_4q_czk as revenue, profit_last_4q_czk as profit, assets_czk as assets, equity_czk as equity, debt_percent as indebtedness, roe, npm, pe, pb, ps, dy, balance_percent
+select b_date, ticker, price, roe, npm, debt_percent as indebtedness, pe, pb, ps, dy, change_percent_pa
 from out_stock_analysis
 where revenue_last_4q_czk is not null
 order by b_date asc, stock_id asc;
